@@ -1,0 +1,102 @@
+Запрос 1
+SELECT
+    `Customer ID`,
+    `Customer Name`,
+    `Address`
+FROM
+    customers
+WHERE
+    `Address` LIKE 'К%' AND `Customer Type` = 0;
+Запрос 2
+SELECT
+    `Order Date`,
+    SUM(IF(`Customer Type`=1,`Price`*`Quantity`,0)) AS `Wholesale Revenue`,
+    SUM(IF(`Customer Type`=0,`Price`*`Quantity`,0)) AS `Retail Revenue`
+FROM
+    orders
+INNER JOIN goods ON orders.Barcode = goods.Barcode
+INNER JOIN customers ON orders.`Customer ID` = customers.`Customer ID`
+GROUP BY
+    `Order Date`
+Запрос 3
+SELECT `Barcode`, `Product Name`, `Price` FROM goods
+WHERE `Barcode` IN
+(SELECT `Barcode` FROM orders
+GROUP BY `Barcode`
+HAVING SUM(`Quantity`)>50)
+запрос 4
+SELECT * FROM goods
+WHERE `Barcode` IN
+(SELECT `Barcode` FROM orders
+WHERE `Customer ID` IN 
+(SELECT `Customer ID` FROM customers
+ WHERE `Customer Type`=1)
+GROUP BY `Barcode`
+HAVING SUM(`Quantity`)>90)
+Запрос 5
+SELECT
+    `Customer Name`,
+    `Address`,
+    `Customer Type`
+FROM
+    customers
+WHERE
+    `Customer ID` IN(
+    SELECT
+        `Customer ID`
+    FROM
+        orders
+    WHERE
+        `Barcode` IN(
+    SELECT
+        `Barcode`
+    FROM
+        goods
+     WHERE MONTH(`Order Date`)=MONTH(CURRENT_DATE)-2 AND `Price`>(
+         SELECT AVG(`Price`)
+         FROM goods) 
+    )
+)
+Запрос 6
+UPDATE goods
+SET `Price`=`Price`*1.1
+WHERE `Product Type`=1 and `Best Before`>CURRENT_DATE
+Запрос 7
+CREATE TABLE currentyearorders SELECT * FROM orders
+Запрос 8 
+DELETE FROM currentyearorders WHERE YEAR(`Order Date`)!=YEAR(CURRENT_DATE)
+Запрос 9
+CREATE OR REPLACE VIEW viewgoods AS SELECT * FROM goods
+WHERE `Price`>1000 and 
+`Barcode` IN 
+(SELECT `Barcode` FROM orders
+ WHERE `Customer ID` IN 
+ (SELECT `Customer ID` FROM customers 
+  WHERE `Customer Type`=1))
+  ORDER BY `PRICE`
+Запрос 10
+SELECT * FROM viewgoods
+WHERE `Product Type`=0 AND `Price`>1000
+Запрос 11
+CREATE OR REPLACE VIEW viewgoods1 AS SELECT * FROM goods
+WHERE `Price`>1000 and 
+`Barcode` IN 
+(SELECT `Barcode` FROM orders
+ WHERE `Customer ID` IN 
+ (SELECT `Customer ID` FROM customers 
+  WHERE `Customer Type`=1))
+WITH CASCADED CHECK OPTION
+  ORDER BY `PRICE`
+Запрос 12
+UPDATE viewgoods 
+SET `Price`=`Price`+100
+WHERE `Price`='The Old Man And The Sea'
+Запрос 13
+CREATE OR REPLACE VIEW multytableview AS SELECT `Order ID`,`Order Date`,orders.`Barcode`,`Product Name`,`Quantity`
+FROM orders,goods
+WHERE orders.`Barcode`=goods.`Barcode`
+Запрос 14
+RENAME TABLE multytableview TO multytableview1
+Запрос 15 
+DROP VIEW IF EXISTS example
+
